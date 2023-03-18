@@ -1,7 +1,8 @@
 # GoatDB
 
 - [X] Bolt
-- [ ] gRPC
-- [ ] Containerized
+- [X] gRPC
+- [ ] Sharding
 - [ ] Raft consensus
+- [ ] Containerize
 - [ ] Elastic logs

@@ -1,0 +1,25 @@
+syntax = "proto3";
+package rpc;
+option go_package = "github.com/jeevan/goatdb/rpc";
+
+message PutRequest {
+    bytes key = 1;
+    bytes val = 2;
+}
+
+message GetRequest {
+    bytes key = 1;
+}
+
+message GetResponse {
+    bytes val = 1;
+}
+
+message Empty {
+
+}
+
+service Kv {
+    rpc Put(PutRequest) returns (Empty) {}
+    rpc Get(GetRequest) returns (GetResponse) {}
+}

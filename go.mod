@@ -1,4 +1,4 @@
-module github.com/jeevano/goatdb
+module github.com/jeevano/golemdb
 
 go 1.20
 

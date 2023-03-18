@@ -1,4 +1,4 @@
-# GoatDB
+# GolemDB
 
 - [X] Bolt
 - [X] gRPC

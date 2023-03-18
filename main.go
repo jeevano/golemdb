@@ -1,11 +1,11 @@
-// Entry point of the goatdb service - initializes database and server
+// Entry point of the golemdb service - initializes database and server
 package main
 
 import (
 	"flag"
-	"github.com/jeevano/goatdb/db"
-	pb "github.com/jeevano/goatdb/rpc"
-	"github.com/jeevano/goatdb/srv"
+	"github.com/jeevano/golemdb/db"
+	pb "github.com/jeevano/golemdb/rpc"
+	"github.com/jeevano/golemdb/srv"
 	"google.golang.org/grpc"
 	"log"
 	"net"

@@ -4,8 +4,8 @@ package srv
 
 import (
 	"context"
-	"github.com/jeevano/goatdb/db"
-	pb "github.com/jeevano/goatdb/rpc"
+	"github.com/jeevano/golemdb/db"
+	pb "github.com/jeevano/golemdb/rpc"
 	"log"
 )
 

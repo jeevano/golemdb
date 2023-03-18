@@ -4,7 +4,7 @@ package client
 
 import (
 	"context"
-	pb "github.com/jeevano/goatdb/rpc"
+	pb "github.com/jeevano/golemdb/rpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"

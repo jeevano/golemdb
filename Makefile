@@ -1,8 +1,8 @@
 build:
-	go build -o bin/goatdb
+	go build -o bin/golemdb
 
 run: build
-	./bin/goatdb
+	./bin/golemdb
 
 test: 
 	@go test -v ./...
@@ -12,7 +12,7 @@ clean:
 
 .PHONY: ctl
 ctl:
-	go build -o bin/goatctl ./ctl/goatctl.go 
+	go build -o bin/golemctl ./ctl/golemctl.go 
 
 .PHONY: rpc
 rpc: 

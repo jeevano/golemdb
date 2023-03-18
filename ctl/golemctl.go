@@ -1,8 +1,8 @@
 // Command line tool to get and put into db
 /*
 Usage:
-	./goatctl --server-addr=localhost:4444 --op=put --key=key1 --val=hello!
-	./goatctl --server-addr=localhost:4444 --op=get --key=key1
+	./golemctl --server-addr=localhost:4444 --op=put --key=key1 --val=hello!
+	./golemctl --server-addr=localhost:4444 --op=get --key=key1
 	hello!
 */
 package main
@@ -10,7 +10,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/jeevano/goatdb/client"
+	"github.com/jeevano/golemdb/client"
 )
 
 var (

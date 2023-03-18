@@ -14,7 +14,7 @@ type Database struct {
 func NewDatabase(dbpath string) (db *Database, close func() error, err error) {
 	// init bolt database
 	_db, err := bolt.Open(dbpath, 0600, nil)
-	if (err != nil) {
+	if err != nil {
 		return nil, nil, err
 	}
 
@@ -29,7 +29,7 @@ func NewDatabase(dbpath string) (db *Database, close func() error, err error) {
 		}
 		return nil
 	})
-	if (err2 != nil) {
+	if err2 != nil {
 		close()
 		return nil, nil, err2
 	}

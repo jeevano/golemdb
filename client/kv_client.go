@@ -3,12 +3,12 @@
 package client
 
 import (
-	"log"
 	"context"
-	"time"
 	pb "github.com/jeevano/goatdb/rpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"log"
+	"time"
 )
 
 type KvClient struct {
@@ -56,6 +56,6 @@ func (c *KvClient) Put(key string, val string) error {
 	if err != nil {
 		log.Fatalf("fail to put: %v", err)
 	}
-	
+
 	return err
 }

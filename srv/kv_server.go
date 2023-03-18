@@ -3,10 +3,10 @@
 package srv
 
 import (
-	"log"
 	"context"
 	"github.com/jeevano/goatdb/db"
 	pb "github.com/jeevano/goatdb/rpc"
+	"log"
 )
 
 type KvServer struct {

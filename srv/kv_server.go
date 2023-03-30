@@ -4,21 +4,14 @@ package srv
 
 import (
 	"context"
-	"github.com/jeevano/golemdb/db"
+	"encoding/json"
+	"github.com/jeevano/golemdb/fsm"
 	pb "github.com/jeevano/golemdb/rpc"
 	"log"
+	"time"
 )
 
-type KvServer struct {
-	pb.KvServer
-	db *db.Database // the backing database
-}
-
-func NewKvServer(db *db.Database) *KvServer {
-	return &KvServer{db: db}
-}
-
-func (s *KvServer) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetResponse, error) {
+func (s *Server) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetResponse, error) {
 	log.Printf("Recieved get request of key %v", string(req.Key))
 	val, err := s.db.Get(req.Key)
 	if err != nil {
@@ -28,11 +21,25 @@ func (s *KvServer) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetResponse
 	return &pb.GetResponse{Val: val}, nil
 }
 
-func (s *KvServer) Put(ctx context.Context, req *pb.PutRequest) (*pb.Empty, error) {
+func (s *Server) Put(ctx context.Context, req *pb.PutRequest) (*pb.Empty, error) {
 	log.Printf("Recieved put request of kv pair {%v : %v}", string(req.Key), string(req.Val))
-	err := s.db.Put(req.Key, req.Val)
+	// err := s.db.Put(req.Key, req.Val)
+
+	// Apply the Raft log for DB write to achieve consensus among following Raft nodes
+	b, err := json.Marshal(fsm.Event{
+		Op:  fsm.PutOp,
+		Key: req.Key,
+		Val: req.Val,
+	})
 	if err != nil {
-		log.Fatalf("Failed to serve put request: %v", err)
+		log.Fatalf("Failed to marshal event: %v", err)
+		return new(pb.Empty), err
 	}
-	return new(pb.Empty), err
+
+	if err := s.raft.Apply(b, 10*time.Second).Error(); err != nil {
+		log.Fatalf("Failed to apply Raft log: %v", err)
+		return new(pb.Empty), err
+	}
+
+	return new(pb.Empty), nil
 }

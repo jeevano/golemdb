@@ -8,7 +8,8 @@ test:
 	@go test -v ./...
 
 clean:
-	rm *.db
+	rm -f *.db
+	rm -rf data/
 
 .PHONY: ctl
 ctl:

@@ -2,7 +2,7 @@
 
 - [X] Bolt
 - [X] gRPC
+- [X] Raft consensus
 - [ ] Sharding
-- [ ] Raft consensus
 - [ ] Containerize
 - [ ] Elastic logs

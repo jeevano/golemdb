@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/hashicorp/raft"
-	pb "github.com/jeevano/golemdb/rpc"
+	pb "github.com/jeevano/golemdb/internal/rpc"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	"log"
 )

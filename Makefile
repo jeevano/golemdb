@@ -1,5 +1,5 @@
 build:
-	go build -o bin/golemdb
+	go build -o bin/golemdb ./cmd/golemdb
 
 run: build
 	./bin/golemdb
@@ -11,11 +11,10 @@ clean:
 	rm -f *.db
 	rm -rf data/
 
-.PHONY: ctl
 ctl:
-	go build -o bin/golemctl ./ctl/golemctl.go 
+	go build -o bin/golemctl ./cmd/golemctl
 
 .PHONY: rpc
 rpc: 
-	protoc --go_out=. --go-grpc_out=. --go_opt=paths=source_relative --go-grpc_opt=paths=source_relative ./rpc/kv.proto
-	protoc --go_out=. --go-grpc_out=. --go_opt=paths=source_relative --go-grpc_opt=paths=source_relative ./rpc/raft.proto
+	protoc --go_out=. --go-grpc_out=. --go_opt=paths=source_relative --go-grpc_opt=paths=source_relative ./internal/rpc/kv.proto
+	protoc --go_out=. --go-grpc_out=. --go_opt=paths=source_relative --go-grpc_opt=paths=source_relative ./internal/rpc/raft.proto

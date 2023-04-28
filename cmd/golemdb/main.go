@@ -3,10 +3,10 @@ package main
 
 import (
 	"context"
-	"github.com/jeevano/golemdb/config"
-	"github.com/jeevano/golemdb/db"
-	pb "github.com/jeevano/golemdb/rpc"
-	"github.com/jeevano/golemdb/srv"
+	"github.com/jeevano/golemdb/pkg/config"
+	"github.com/jeevano/golemdb/pkg/db"
+	pb "github.com/jeevano/golemdb/internal/rpc"
+	"github.com/jeevano/golemdb/pkg/srv"
 	"google.golang.org/grpc"
 	"log"
 	"net"

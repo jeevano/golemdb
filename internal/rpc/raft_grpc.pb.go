@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v3.21.12
-// source: rpc/raft.proto
+// source: internal/rpc/raft.proto
 
 package rpc
 
@@ -21,7 +21,7 @@ const _ = grpc.SupportPackageIsVersion7
 
 const (
 	Raft_Join_FullMethodName   = "/rpc.Raft/Join"
-	Raft_Remove_FullMethodName = "/rpc.Raft/Remove"
+	Raft_Leave_FullMethodName  = "/rpc.Raft/Leave"
 	Raft_Status_FullMethodName = "/rpc.Raft/Status"
 )
 
@@ -30,7 +30,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type RaftClient interface {
 	Join(ctx context.Context, in *JoinRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	Remove(ctx context.Context, in *RemoveRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	Leave(ctx context.Context, in *LeaveRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	Status(ctx context.Context, in *StatusRequest, opts ...grpc.CallOption) (*StatusResponse, error)
 }
 
@@ -51,9 +51,9 @@ func (c *raftClient) Join(ctx context.Context, in *JoinRequest, opts ...grpc.Cal
 	return out, nil
 }
 
-func (c *raftClient) Remove(ctx context.Context, in *RemoveRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *raftClient) Leave(ctx context.Context, in *LeaveRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, Raft_Remove_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, Raft_Leave_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func (c *raftClient) Status(ctx context.Context, in *StatusRequest, opts ...grpc
 // for forward compatibility
 type RaftServer interface {
 	Join(context.Context, *JoinRequest) (*emptypb.Empty, error)
-	Remove(context.Context, *RemoveRequest) (*emptypb.Empty, error)
+	Leave(context.Context, *LeaveRequest) (*emptypb.Empty, error)
 	Status(context.Context, *StatusRequest) (*StatusResponse, error)
 	mustEmbedUnimplementedRaftServer()
 }
@@ -86,8 +86,8 @@ type UnimplementedRaftServer struct {
 func (UnimplementedRaftServer) Join(context.Context, *JoinRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Join not implemented")
 }
-func (UnimplementedRaftServer) Remove(context.Context, *RemoveRequest) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Remove not implemented")
+func (UnimplementedRaftServer) Leave(context.Context, *LeaveRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Leave not implemented")
 }
 func (UnimplementedRaftServer) Status(context.Context, *StatusRequest) (*StatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Status not implemented")
@@ -123,20 +123,20 @@ func _Raft_Join_Handler(srv interface{}, ctx context.Context, dec func(interface
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Raft_Remove_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RemoveRequest)
+func _Raft_Leave_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LeaveRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RaftServer).Remove(ctx, in)
+		return srv.(RaftServer).Leave(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Raft_Remove_FullMethodName,
+		FullMethod: Raft_Leave_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RaftServer).Remove(ctx, req.(*RemoveRequest))
+		return srv.(RaftServer).Leave(ctx, req.(*LeaveRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -171,8 +171,8 @@ var Raft_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Raft_Join_Handler,
 		},
 		{
-			MethodName: "Remove",
-			Handler:    _Raft_Remove_Handler,
+			MethodName: "Leave",
+			Handler:    _Raft_Leave_Handler,
 		},
 		{
 			MethodName: "Status",
@@ -180,5 +180,5 @@ var Raft_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "rpc/raft.proto",
+	Metadata: "internal/rpc/raft.proto",
 }

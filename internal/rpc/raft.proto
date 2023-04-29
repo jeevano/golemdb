@@ -7,11 +7,13 @@ import "google/protobuf/empty.proto";
 message JoinRequest {
     string server_id = 1;
     string address = 2;
+    string shard_id = 3;
 }
 
-message RemoveRequest {
+message LeaveRequest {
     string server_id = 1;
     string address = 2;
+    string shard_id = 3;
 }
 
 message StatusRequest {
@@ -25,6 +27,6 @@ message StatusResponse {
 
 service Raft {
     rpc Join(JoinRequest) returns (google.protobuf.Empty) {}
-    rpc Remove(RemoveRequest) returns (google.protobuf.Empty) {}
+    rpc Leave(LeaveRequest) returns (google.protobuf.Empty) {}
     rpc Status(StatusRequest) returns (StatusResponse) {}
 } 

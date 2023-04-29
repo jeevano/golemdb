@@ -2,16 +2,15 @@
 package main
 
 import (
-	"context"
 	"github.com/jeevano/golemdb/pkg/config"
 	"github.com/jeevano/golemdb/pkg/db"
-	pb "github.com/jeevano/golemdb/internal/rpc"
+	"github.com/jeevano/golemdb/pkg/client"
 	"github.com/jeevano/golemdb/pkg/srv"
+	pb "github.com/jeevano/golemdb/internal/rpc"
 	"google.golang.org/grpc"
 	"log"
 	"net"
 	"path/filepath"
-	"time"
 )
 
 var conf = &config.Config{}
@@ -63,25 +62,20 @@ func main() {
 		log.Printf("Successfully bootstrapped Raft cluster!")
 	} else {
 		// Join the Raft cluster with the supplied Join addresss
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-
-		conn, err := grpc.DialContext(ctx, conf.JoinAddress, grpc.WithInsecure())
+		client, close, err := client.NewRaftClient(conf.JoinAddress)
 		if err != nil {
-			log.Fatalf("Failed to dial peer %s. Got error: %v", conf.JoinAddress, err)
-			return
+			log.Fatalf("Failed to create raft client: %v", err)
 		}
-		client := pb.NewRaftClient(conn)
 
-		_, err = client.Join(ctx, &pb.JoinRequest{
-			ServerId: conf.ServerId,
-			Address:  conf.RaftAddress,
-		})
+		err = client.Join(conf.ServerId, conf.RaftAddress)
+
 		if err != nil {
 			log.Fatalf("Failed to join Raft cluster: %v", err)
+			close()
 			return
 		}
-		conn.Close()
+		
+		close()
 		log.Printf("Successfully joined cluster at peer %s!", conf.JoinAddress)
 	}
 

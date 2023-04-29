@@ -7,7 +7,7 @@ import (
 	pb "github.com/jeevano/golemdb/internal/rpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"log"
+	"fmt"
 	"time"
 )
 
@@ -21,9 +21,8 @@ func NewKvClient(serverAddr string) (*KvClient, func() error, error) {
 
 	conn, err := grpc.Dial(serverAddr, opts...)
 	if err != nil {
-		log.Fatalf("fail to dial: %v", err)
 		defer conn.Close()
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("fail to dial: %v", err)
 	}
 
 	client := pb.NewKvClient(conn)
@@ -39,8 +38,7 @@ func (c *KvClient) Get(key string) (val string, err error) {
 
 	res, err := c.client.Get(ctx, &req)
 	if err != nil {
-		log.Fatalf("fail to get: %v", err)
-		return "", err
+		return "", fmt.Errorf("fail to get: %v", err)
 	}
 
 	return string(res.Val), nil
@@ -54,8 +52,8 @@ func (c *KvClient) Put(key string, val string) error {
 
 	_, err := c.client.Put(ctx, &req)
 	if err != nil {
-		log.Fatalf("fail to put: %v", err)
+		return fmt.Errorf("fail to put: %v", err)
 	}
 
-	return err
+	return nil
 }

@@ -74,7 +74,7 @@ func (s *Server) Join(_ context.Context, req *pb.JoinRequest) (*emptypb.Empty, e
 }
 
 // Remove the requesting node from the current raft cluster
-func (s *Server) Remove(_ context.Context, req *pb.RemoveRequest) (*emptypb.Empty, error) {
+func (s *Server) Leave(_ context.Context, req *pb.LeaveRequest) (*emptypb.Empty, error) {
 	return empty(), fmt.Errorf("Not yet implemented!")
 }
 

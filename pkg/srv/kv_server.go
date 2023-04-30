@@ -6,7 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/jeevano/golemdb/pkg/fsm"
-	pb "github.com/jeevano/golemdb/internal/rpc"
+	pb "github.com/jeevano/golemdb/proto/gen"
 	"log"
 	"time"
 )

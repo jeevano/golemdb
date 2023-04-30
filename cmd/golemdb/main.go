@@ -6,7 +6,7 @@ import (
 	"github.com/jeevano/golemdb/pkg/db"
 	"github.com/jeevano/golemdb/pkg/client"
 	"github.com/jeevano/golemdb/pkg/srv"
-	pb "github.com/jeevano/golemdb/internal/rpc"
+	pb "github.com/jeevano/golemdb/proto/gen"
 	"google.golang.org/grpc"
 	"log"
 	"net"

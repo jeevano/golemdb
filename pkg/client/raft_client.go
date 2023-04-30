@@ -2,11 +2,11 @@ package client
 
 import (
 	"context"
-	pb "github.com/jeevano/golemdb/internal/rpc"
+	"fmt"
+	pb "github.com/jeevano/golemdb/proto/gen"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"time"
-	"fmt"
 )
 
 type RaftClient struct {
@@ -31,13 +31,13 @@ func NewRaftClient(serverAddr string) (*RaftClient, func() error, error) {
 func (c *RaftClient) Join(serverId string, address string) error {
 	req := pb.JoinRequest{
 		ServerId: serverId,
-		Address: address,
+		Address:  address,
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	_, err := c.client.Join(ctx, &req)
-	
+
 	return err
 }
 

@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v3.21.12
-// source: internal/rpc/kv.proto
+// source: kv.proto
 
-package rpc
+package gen
 
 import (
 	context "context"
@@ -142,5 +142,5 @@ var Kv_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "internal/rpc/kv.proto",
+	Metadata: "kv.proto",
 }

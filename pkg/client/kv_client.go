@@ -4,10 +4,10 @@ package client
 
 import (
 	"context"
-	pb "github.com/jeevano/golemdb/internal/rpc"
+	"fmt"
+	pb "github.com/jeevano/golemdb/proto/gen"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"fmt"
 	"time"
 )
 

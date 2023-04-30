@@ -7,7 +7,7 @@ import (
 	"github.com/jeevano/golemdb/pkg/config"
 	"github.com/jeevano/golemdb/pkg/db"
 	"github.com/jeevano/golemdb/pkg/fsm"
-	pb "github.com/jeevano/golemdb/internal/rpc"
+	pb "github.com/jeevano/golemdb/proto/gen"
 	"log"
 	"net"
 	"os"

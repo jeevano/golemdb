@@ -1,0 +1,27 @@
+syntax = "proto3";
+package rpc;
+option go_package = "proto/gen";
+
+message ShardInfo {
+    int32 shard_id = 1;
+    int32 size = 2;
+    int32 writes = 3;
+    int32 reads = 4;
+    bool is_leader = 5;
+    string start = 6;
+    string end = 7;
+}
+
+message HeartbeatRequest {
+    string server_id = 1;
+    string address = 2;
+    repeated ShardInfo shards = 3;
+}
+
+message HeartbeatResponse {
+    bytes routing_table = 1;
+}
+
+service PD {
+    rpc Heartbeat(HeartbeatRequest) returns (HeartbeatResponse) {}
+}

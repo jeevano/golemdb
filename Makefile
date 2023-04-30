@@ -1,6 +1,14 @@
 build:
 	go build -o bin/golemdb ./cmd/golemdb
 
+ctl:
+	go build -o bin/golemctl ./cmd/golemctl
+
+pd:
+	go build -o bin/golempd ./cmd/golempd
+
+all: build pd ctl
+
 run: build
 	./bin/golemdb
 
@@ -11,9 +19,5 @@ clean:
 	rm -f *.db
 	rm -rf data/
 
-ctl:
-	go build -o bin/golemctl ./cmd/golemctl
-
-.PHONY: rpc
 rpc: 
 	protoc -I=proto --go_out=. --go-grpc_out=. proto/*.proto

@@ -47,27 +47,35 @@ func main() {
 
 	log.Print("Starting server...")
 
-	// Fire up the raft FSM
-	if err := s.Start(); err != nil {
-		log.Fatalf("Failed to start up the Raft FSM: %v", err)
-		return
-	}
+	// Fire up the raft FSM (different process if leader or voter)
 
 	if conf.Bootstrap == true {
 		// Bootstrap the Raft cluster with this node
-		if err := s.BootstrapCluster(); err != nil {
+		initRegion := s.NewRegion("A", "z", true, conf.InitShardId)
+		if err := s.StartRaft(initRegion); err != nil {
+			log.Fatalf("Failed to start up the Raft FSM: %v", err)
+			return
+		}
+
+		if err := s.BootstrapCluster(initRegion); err != nil {
 			log.Fatalf("Failed to Bootstrap cluser: %v", err)
 			return
 		}
 		log.Printf("Successfully bootstrapped Raft cluster!")
 	} else {
 		// Join the Raft cluster with the supplied Join addresss
+		initRegion := s.NewRegion("A", "z", false, conf.InitShardId)
+		if err := s.StartRaft(initRegion); err != nil {
+			log.Fatalf("Failed to start up the Raft FSM: %v", err)
+			return
+		}
+
 		client, close, err := client.NewRaftClient(conf.JoinAddress)
 		if err != nil {
 			log.Fatalf("Failed to create raft client: %v", err)
 		}
 
-		err = client.Join(conf.ServerId, conf.RaftAddress)
+		err = client.Join(conf.ServerId, conf.RaftAddress, conf.InitShardId)
 
 		if err != nil {
 			log.Fatalf("Failed to join Raft cluster: %v", err)
@@ -78,6 +86,9 @@ func main() {
 		close()
 		log.Printf("Successfully joined cluster at peer %s!", conf.JoinAddress)
 	}
+
+	// Start the server (begin heartbeating)
+	// s.Start()
 
 	// And begin serving incoming Raft requests and Kv requests
 	log.Printf("Kv Server listening on %s", conf.KvAddress)

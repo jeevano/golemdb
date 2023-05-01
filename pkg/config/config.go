@@ -13,18 +13,24 @@ type Config struct {
 	DataDir     string // Directory to store Raft and DB files
 	KvAddress   string // Address for KvServer connections
 	MaxPool     int    // Max number of Raft node connections
-	Bootstrap   bool   // True if this is the first Node to initiate cluster
+	Bootstrap   bool   // True if this is the first Node to initiate shard
+	PdAddress   string
+	InitShardId int32
 }
 
 func (conf *Config) Load() error {
+	var tmpInitShardId int
 	flag.StringVar(&conf.ServerId, "id", "", "A unique id for this Raft node.")
 	flag.StringVar(&conf.DataDir, "data-dir", "", "Path of where to store FSM state.")
 	flag.StringVar(&conf.JoinAddress, "join-addr", "", "Address of another node to send a join request.")
 	flag.StringVar(&conf.RaftAddress, "raft-addr", "", "Raft address of the node.")
 	flag.StringVar(&conf.KvAddress, "kv-addr", "localhost:4444", "Address on which to bind KvServer.")
+	flag.StringVar(&conf.PdAddress, "pd-addr", "localhost:5555", "Address on which to contact the Placement Driver.")
 	flag.IntVar(&conf.MaxPool, "max-pool", 7, "Max pool of Raft Nodes.")
+	flag.IntVar(&tmpInitShardId, "init-shard-id", 0, "Id of the initial shard")
 	flag.BoolVar(&conf.Bootstrap, "bootstrap", true, "Bootstrap the cluster with this node.")
 	flag.Parse()
+	conf.InitShardId = int32(tmpInitShardId)
 	return conf.Validate()
 }
 

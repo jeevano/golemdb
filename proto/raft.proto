@@ -7,13 +7,13 @@ import "google/protobuf/empty.proto";
 message JoinRequest {
     string server_id = 1;
     string address = 2;
-    string shard_id = 3;
+    int32 shard_id = 3;
 }
 
 message LeaveRequest {
     string server_id = 1;
     string address = 2;
-    string shard_id = 3;
+    int32 shard_id = 3;
 }
 
 message StatusRequest {

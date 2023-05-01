@@ -5,6 +5,7 @@ import (
 	"github.com/jeevano/golemdb/pkg/client"
 	"sync"
 	"time"
+	"log"
 )
 
 // Placement Driver
@@ -128,10 +129,13 @@ func (pd *PD) Reshard() error {
 			candidatesToJoin = append(candidatesToJoin, n)
 		}
 	}
+	log.Printf("Node join candidates: %+v", candidatesToJoin)
 
 	// Check if Shards need new nodes
 	for shardId, nodes := range shardToNodes {
 		if len(nodes) < 2 {
+			log.Printf("Found shard with less than 2 participating nodes")
+
 			// If less than 2 participating nodes, join any candidate node to the shard
 			leaderAddr := pd.shards[shardId].LeaderAddr
 
@@ -140,7 +144,12 @@ func (pd *PD) Reshard() error {
 				return fmt.Errorf("Failed to dial node %s: %v", leaderAddr, err)
 			}
 
-			err = client.Join(candidatesToJoin[ind].serverId, candidatesToJoin[ind].address)
+			log.Printf("Joining node %s to region lead by %s", candidatesToJoin[ind].address, leaderAddr)
+
+			// How will this work? 
+			err = client.Join(candidatesToJoin[ind].serverId, candidatesToJoin[ind].address, shardId)
+			// The PD will have to tell the node to join, so it can start the raft before becoming a voter
+
 			if err != nil {
 				return fmt.Errorf("Failed to join node %s to cluster with leader %s: %v",
 					candidatesToJoin[ind].address, leaderAddr, err)

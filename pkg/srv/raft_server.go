@@ -12,9 +12,9 @@ import (
 )
 
 // Bootstrap a new raft cluster (become leader)
-func (s *Server) BootstrapCluster() error {
+func (s *Server) BootstrapCluster(r *Region) error {
 	// Ensure no other peers exist in Raft
-	peers, err := s.numVoters()
+	peers, err := s.numVoters(r)
 	if err != nil {
 		log.Fatalf("Failed to obtain Raft configuration to initiate Bootstrap: %v", err)
 		return fmt.Errorf("Failed to obtain config to Bootstrap cluster: %v", err)
@@ -25,9 +25,9 @@ func (s *Server) BootstrapCluster() error {
 	}
 
 	// Bootstrap the cluster with the current Node
-	err = s.raft.BootstrapCluster(raft.Configuration{Servers: []raft.Server{{
+	err = r.raft.BootstrapCluster(raft.Configuration{Servers: []raft.Server{{
 		ID:      raft.ServerID(s.conf.ServerId),
-		Address: s.raftTransport.LocalAddr(),
+		Address: r.raftTransport.LocalAddr(),
 	}}}).Error()
 	if err != nil {
 		log.Fatalf("Failed to complete Raft Bootstrap Cluster: %v", err)
@@ -39,12 +39,14 @@ func (s *Server) BootstrapCluster() error {
 	return nil
 }
 
-// Join the requesting node to the current raft cluster
+// Join the requesting node to the current raft cluster corresponding to requested region/shard
 func (s *Server) Join(_ context.Context, req *pb.JoinRequest) (*emptypb.Empty, error) {
 	log.Printf("Initiating Join request for Node %s with address %s", req.ServerId, req.Address)
 
+	region := s.regions[req.ShardId]
+
 	// Obtain configuration
-	confFuture := s.raft.GetConfiguration()
+	confFuture := region.raft.GetConfiguration()
 	if err := confFuture.Error(); err != nil {
 		log.Fatalf("Failed to obtain Raft configuration to initiate Join request: %v", err)
 		return empty(), fmt.Errorf("Failed to get Raft configuration for Join request: %v", err)
@@ -64,7 +66,7 @@ func (s *Server) Join(_ context.Context, req *pb.JoinRequest) (*emptypb.Empty, e
 	}
 
 	// Add the voter to Raft cluster
-	if err := s.raft.AddVoter(raft.ServerID(req.ServerId), raft.ServerAddress(req.Address), 0, 0).Error(); err != nil {
+	if err := region.raft.AddVoter(raft.ServerID(req.ServerId), raft.ServerAddress(req.Address), 0, 0).Error(); err != nil {
 		log.Fatalf("Node %s with address %s failed to Join the cluster: %v", req.ServerId, req.Address, err)
 		return empty(), fmt.Errorf("Failed to join Raft: %v", err)
 	}
@@ -83,8 +85,8 @@ func (s *Server) Status(_ context.Context, req *pb.StatusRequest) (*pb.StatusRes
 	return &pb.StatusResponse{}, fmt.Errorf("Not yet implemented!")
 }
 
-func (s *Server) numVoters() (int, error) {
-	configFuture := s.raft.GetConfiguration()
+func (s *Server) numVoters(r *Region) (int, error) {
+	configFuture := r.raft.GetConfiguration()
 	if err := configFuture.Error(); err != nil {
 		return 0, fmt.Errorf("Failed to get Raft config: %v", err)
 	}

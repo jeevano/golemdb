@@ -112,7 +112,7 @@ func (s *Server) heartbeatRoutine() {
 
 		// Send heartbeat to PD
 		if err := client.DoHeartbeat(s.conf.ServerId, s.conf.KvAddress, info); err != nil {
-			log.Fatalf("Failed to send heartbeat to PD: %v", err)
+			log.Fatalf("Failed to complete PD heartbeat procedure: %v", err)
 		}
 	}
 }

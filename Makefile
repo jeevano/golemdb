@@ -1,4 +1,4 @@
-build:
+db:
 	go build -o bin/golemdb ./cmd/golemdb
 
 ctl:
@@ -7,10 +7,10 @@ ctl:
 pd:
 	go build -o bin/golempd ./cmd/golempd
 
-all: build pd ctl
+all: db pd ctl
 
-run: build
-	./bin/golemdb
+run: all
+	./dev/startup.sh
 
 test: 
 	@go test -v ./...

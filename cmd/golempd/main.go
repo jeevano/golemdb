@@ -32,5 +32,7 @@ func main() {
 	grpcServer := grpc.NewServer(opts...)
 	pb.RegisterPDServer(grpcServer, s)
 
+	pd.Start()
+
 	grpcServer.Serve(lis)
 }

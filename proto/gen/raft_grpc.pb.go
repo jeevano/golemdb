@@ -20,9 +20,11 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Raft_Join_FullMethodName   = "/rpc.Raft/Join"
-	Raft_Leave_FullMethodName  = "/rpc.Raft/Leave"
-	Raft_Status_FullMethodName = "/rpc.Raft/Status"
+	Raft_Join_FullMethodName       = "/rpc.Raft/Join"
+	Raft_Leave_FullMethodName      = "/rpc.Raft/Leave"
+	Raft_Status_FullMethodName     = "/rpc.Raft/Status"
+	Raft_JoinShard_FullMethodName  = "/rpc.Raft/JoinShard"
+	Raft_SplitShard_FullMethodName = "/rpc.Raft/SplitShard"
 )
 
 // RaftClient is the client API for Raft service.
@@ -32,6 +34,8 @@ type RaftClient interface {
 	Join(ctx context.Context, in *JoinRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	Leave(ctx context.Context, in *LeaveRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	Status(ctx context.Context, in *StatusRequest, opts ...grpc.CallOption) (*StatusResponse, error)
+	JoinShard(ctx context.Context, in *JoinShardRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	SplitShard(ctx context.Context, in *SplitShardRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type raftClient struct {
@@ -69,6 +73,24 @@ func (c *raftClient) Status(ctx context.Context, in *StatusRequest, opts ...grpc
 	return out, nil
 }
 
+func (c *raftClient) JoinShard(ctx context.Context, in *JoinShardRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, Raft_JoinShard_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *raftClient) SplitShard(ctx context.Context, in *SplitShardRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, Raft_SplitShard_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RaftServer is the server API for Raft service.
 // All implementations must embed UnimplementedRaftServer
 // for forward compatibility
@@ -76,6 +98,8 @@ type RaftServer interface {
 	Join(context.Context, *JoinRequest) (*emptypb.Empty, error)
 	Leave(context.Context, *LeaveRequest) (*emptypb.Empty, error)
 	Status(context.Context, *StatusRequest) (*StatusResponse, error)
+	JoinShard(context.Context, *JoinShardRequest) (*emptypb.Empty, error)
+	SplitShard(context.Context, *SplitShardRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedRaftServer()
 }
 
@@ -91,6 +115,12 @@ func (UnimplementedRaftServer) Leave(context.Context, *LeaveRequest) (*emptypb.E
 }
 func (UnimplementedRaftServer) Status(context.Context, *StatusRequest) (*StatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Status not implemented")
+}
+func (UnimplementedRaftServer) JoinShard(context.Context, *JoinShardRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method JoinShard not implemented")
+}
+func (UnimplementedRaftServer) SplitShard(context.Context, *SplitShardRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SplitShard not implemented")
 }
 func (UnimplementedRaftServer) mustEmbedUnimplementedRaftServer() {}
 
@@ -159,6 +189,42 @@ func _Raft_Status_Handler(srv interface{}, ctx context.Context, dec func(interfa
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Raft_JoinShard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(JoinShardRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RaftServer).JoinShard(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Raft_JoinShard_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RaftServer).JoinShard(ctx, req.(*JoinShardRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Raft_SplitShard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SplitShardRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RaftServer).SplitShard(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Raft_SplitShard_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RaftServer).SplitShard(ctx, req.(*SplitShardRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Raft_ServiceDesc is the grpc.ServiceDesc for Raft service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -177,6 +243,14 @@ var Raft_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Status",
 			Handler:    _Raft_Status_Handler,
+		},
+		{
+			MethodName: "JoinShard",
+			Handler:    _Raft_JoinShard_Handler,
+		},
+		{
+			MethodName: "SplitShard",
+			Handler:    _Raft_SplitShard_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -21,7 +21,7 @@ func NewPDServer(placementDriver *PD) *PDServer {
 // Recieves heartbeats from GolemDB Nodes containing information on participation in shards, and other shard metadata
 func (s *PDServer) Heartbeat(_ context.Context, req *pb.HeartbeatRequest) (*pb.HeartbeatResponse, error) {
 	// Handle the heartbeat
-	if err := s.pd.HandleHeartbeat(req.ServerId, req.Address, req.Shards); err != nil{
+	if err := s.pd.HandleHeartbeat(req.ServerId, req.Address, req.Shards); err != nil {
 		log.Fatalf("Failed to handle heartbeat for server %s: %v", req.ServerId, err)
 		return &pb.HeartbeatResponse{}, err
 	}

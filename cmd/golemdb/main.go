@@ -66,7 +66,7 @@ func main() {
 	}
 
 	// Start the server (begin heartbeating)
-	// s.Start()
+	s.Start()
 
 	// And begin serving incoming Raft requests and Kv requests
 	log.Printf("Kv Server listening on %s", conf.KvAddress)

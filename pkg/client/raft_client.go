@@ -42,6 +42,22 @@ func (c *RaftClient) Join(serverId, address string, shardId int32) error {
 	return err
 }
 
+func (c *RaftClient) JoinShard(address, start, end string, shardId int32) error {
+	req := pb.JoinShardRequest {
+		LeaderAddress: address,
+		Start: start,
+		End: end,
+		ShardId: shardId,
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	_, err := c.client.JoinShard(ctx, &req)
+
+	return err
+}
+
 func (c *RaftClient) Leave(serverId, address string, shardId int32) error {
 	return fmt.Errorf("Not yet implemented")
 }

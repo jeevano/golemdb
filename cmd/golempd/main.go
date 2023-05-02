@@ -7,9 +7,9 @@ import (
 	"log"
 	"net"
 
-	"google.golang.org/grpc"
 	placementDriver "github.com/jeevano/golemdb/pkg/pd"
 	pb "github.com/jeevano/golemdb/proto/gen"
+	"google.golang.org/grpc"
 )
 
 var (

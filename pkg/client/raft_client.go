@@ -44,11 +44,11 @@ func (c *RaftClient) Join(serverId, address string, shardId int32) error {
 }
 
 func (c *RaftClient) JoinShard(address, start, end string, shardId int32) error {
-	req := pb.JoinShardRequest {
+	req := pb.JoinShardRequest{
 		LeaderAddress: address,
-		Start: start,
-		End: end,
-		ShardId: shardId,
+		Start:         start,
+		End:           end,
+		ShardId:       shardId,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

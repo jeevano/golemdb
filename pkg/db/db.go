@@ -5,7 +5,7 @@ package db
 
 import (
 	"fmt"
-	
+
 	bolt "go.etcd.io/bbolt"
 )
 

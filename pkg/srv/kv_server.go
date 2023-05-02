@@ -5,9 +5,11 @@ package srv
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/jeevano/golemdb/pkg/fsm"
 	pb "github.com/jeevano/golemdb/proto/gen"
 	"log"
+	"strings"
 	"time"
 )
 
@@ -23,7 +25,13 @@ func (s *Server) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetResponse, 
 
 func (s *Server) Put(ctx context.Context, req *pb.PutRequest) (*pb.Empty, error) {
 	log.Printf("Recieved put request of kv pair {%v : %v}", string(req.Key), string(req.Val))
-	// err := s.db.Put(req.Key, req.Val)
+
+	// Check if the key fits into my regions
+	region, err := s.findRegion(string(req.Key))
+	if err != nil {
+		log.Printf("Key %v is not in my range", string(req.Key))
+		return empty2(), err
+	}
 
 	// Apply the Raft log for DB write to achieve consensus among following Raft nodes
 	b, err := json.Marshal(fsm.Event{
@@ -33,13 +41,33 @@ func (s *Server) Put(ctx context.Context, req *pb.PutRequest) (*pb.Empty, error)
 	})
 	if err != nil {
 		log.Fatalf("Failed to marshal event: %v", err)
-		return new(pb.Empty), err
+		return empty2(), err
 	}
 
-	if err := s.raft.Apply(b, 10*time.Second).Error(); err != nil {
+	if err := region.raft.Apply(b, 10*time.Second).Error(); err != nil {
 		log.Fatalf("Failed to apply Raft log: %v", err)
-		return new(pb.Empty), err
+		return empty2(), err
 	}
 
-	return new(pb.Empty), nil
+	return empty2(), nil
+}
+
+func (s *Server) findRegion(key string) (*Region, error) {
+	var region *Region = nil
+	for _, r := range s.regions {
+		if strings.Compare(key, r.start) >= 0 && strings.Compare(key, r.end) <= 0 {
+			region = r
+			break
+		}
+	}
+	// If the region is still not found, check the routing table
+	if region == nil {
+		return nil, fmt.Errorf("Not in my regions")
+	}
+
+	return region, nil
+}
+
+func empty2() *pb.Empty {
+	return new(pb.Empty)
 }

@@ -28,10 +28,11 @@ func NewRaftClient(serverAddr string) (*RaftClient, func() error, error) {
 	return &RaftClient{client}, conn.Close, nil
 }
 
-func (c *RaftClient) Join(serverId string, address string) error {
+func (c *RaftClient) Join(serverId, address string, shardId int32) error {
 	req := pb.JoinRequest{
 		ServerId: serverId,
 		Address:  address,
+		ShardId:  shardId,
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -41,6 +42,6 @@ func (c *RaftClient) Join(serverId string, address string) error {
 	return err
 }
 
-func (c *RaftClient) Leave(serverId string, address string) error {
+func (c *RaftClient) Leave(serverId, address string, shardId int32) error {
 	return fmt.Errorf("Not yet implemented")
 }

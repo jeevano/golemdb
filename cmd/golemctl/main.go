@@ -27,9 +27,16 @@ func main() {
 	defer close()
 
 	if *op == "get" {
-		res, _ := client.Get(*key)
-		fmt.Printf("%v\n", res)
+		res, err := client.Get(*key)
+		if err != nil {
+			fmt.Printf("%v\n", err)
+		} else {
+			fmt.Printf("%v\n", res)
+		}
 	} else if *op == "put" {
-		client.Put(*key, *val)
+		err := client.Put(*key, *val)
+		if err != nil {
+			fmt.Printf("%v\n", err)
+		}
 	}
 }

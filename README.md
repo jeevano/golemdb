@@ -11,21 +11,28 @@
 - [ ] MVCC
 - [ ] Better observability
 
+## Placement Driver
+- Recieves heartbeats from all the nodes within the GolemDB cluster, containing info on what shards they are members of
+- Maintains a routing table for key ranges and their respective raft groups and leader
+- Will join nodes (on their behalf) to shard regions, and split regions when they get too large
+
 ## Sharding
-- **Top Half**: All nodes members of same raft cluster, for having consensus over configuration and sharding
-  - Join shard, leave shard, reshard, etc.
-- **Bottom Half**: Raft clusters for maintaining consensus over the actual data within shards. A subset of GolemDB nodes may be a member of these clusters.
-  - Put operations, delete operations, get operations.
-- Each node maintains a dynamic global look-up-table for caching the location where keys should be read/stored based on the sharding strategy. This table is synchronized on the top-half Raft FSM of each node, and used for redirecting user requests to Raft nodes that can serve them.
-- **Sharding strategy**: In this implementation, data is sharded based on key ranges. The nodes will additionally perform resharding when shards grow too large. 
+- **Sharding strategy**: In this implementation, data is sharded based on key ranges
+- The Placement Driver is responsible for resharding and coordination of nodes participating in each shard
+- The node is aware of the shards it is replicating or leading, and is capable of redirecting client requests to the appropriate node by using the routing table supplied by the Placement Driver
+- The shards have a one to many relationship with the GolemDB nodes, and a given node may be a follower or leader of numerous disjoint shards
 ```
++------------------------------------------+
+|                  CLIENT                  |
++------------------------------------------+
+     V                V                V      gRPC
 +--------+       +--------+       +--------+
-| RAFT   | <---> | RAFT   | <---> | RAFT   |
-|        |       |        |       |        |
-|--------|       |--------|       |--------|
-| RAFT 1 | <---> | RAFT 1 |       |        |
-|        |       |        |       |        |
-| RAFT 2 | <---> | RAFT 2 | <---> | RAFT 2 |
+| NODE   |       | NODE   |       | NODE   |
+|        |       |        |       |        |       +--------+
+|--------|       |--------|       |--------|       |        |
+| RAFT 1 | <---> | RAFT 1 |       |        |       |   PD   |
+|        |       |        |       |        |       |        |
+| RAFT 2 | <---> | RAFT 2 | <---> | RAFT 2 |       +--------+
 |        |       |        |       |        |
 |        |       | RAFT 3 | <---> | RAFT 3 |
 +--------+       +--------+       +--------+

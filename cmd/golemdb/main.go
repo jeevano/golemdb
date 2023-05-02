@@ -4,7 +4,6 @@ package main
 import (
 	"github.com/jeevano/golemdb/pkg/config"
 	"github.com/jeevano/golemdb/pkg/db"
-	"github.com/jeevano/golemdb/pkg/client"
 	"github.com/jeevano/golemdb/pkg/srv"
 	pb "github.com/jeevano/golemdb/proto/gen"
 	"google.golang.org/grpc"
@@ -51,39 +50,18 @@ func main() {
 
 	if conf.Bootstrap == true {
 		// Bootstrap the Raft cluster with this node
-		initRegion := s.NewRegion("A", "z", true, conf.InitShardId)
-		if err := s.StartRaft(initRegion); err != nil {
-			log.Fatalf("Failed to start up the Raft FSM: %v", err)
-			return
+		err := s.BootstrapShardInternal("A", "Z", 0)
+		if err != nil {
+			log.Fatalf("%v", err)
 		}
-
-		if err := s.BootstrapCluster(initRegion); err != nil {
-			log.Fatalf("Failed to Bootstrap cluser: %v", err)
-			return
-		}
-		log.Printf("Successfully bootstrapped Raft cluster!")
+		log.Printf("Successfully bootstrapped Raft cluster")
 	} else {
 		// Join the Raft cluster with the supplied Join addresss
-		initRegion := s.NewRegion("A", "z", false, conf.InitShardId)
-		if err := s.StartRaft(initRegion); err != nil {
-			log.Fatalf("Failed to start up the Raft FSM: %v", err)
+		err := s.JoinShardInternal(conf.JoinAddress, "A", "Z", 0)
+		if err != nil {
+			log.Fatalf("%v", err)
 			return
 		}
-
-		client, close, err := client.NewRaftClient(conf.JoinAddress)
-		if err != nil {
-			log.Fatalf("Failed to create raft client: %v", err)
-		}
-
-		err = client.Join(conf.ServerId, conf.RaftAddress, conf.InitShardId)
-
-		if err != nil {
-			log.Fatalf("Failed to join Raft cluster: %v", err)
-			close()
-			return
-		}
-		
-		close()
 		log.Printf("Successfully joined cluster at peer %s!", conf.JoinAddress)
 	}
 
@@ -92,6 +70,5 @@ func main() {
 
 	// And begin serving incoming Raft requests and Kv requests
 	log.Printf("Kv Server listening on %s", conf.KvAddress)
-	log.Printf("Raft listening on %s", conf.RaftAddress)
 	grpcServer.Serve(lis)
 }

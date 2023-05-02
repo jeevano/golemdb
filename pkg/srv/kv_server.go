@@ -9,8 +9,8 @@ import (
 	"github.com/jeevano/golemdb/pkg/fsm"
 	pb "github.com/jeevano/golemdb/proto/gen"
 	"log"
-	"time"
 	"strings"
+	"time"
 )
 
 func (s *Server) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetResponse, error) {

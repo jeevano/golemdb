@@ -6,10 +6,69 @@ import (
 	"context"
 	"fmt"
 	"github.com/hashicorp/raft"
+	raftboltdb "github.com/hashicorp/raft-boltdb"
+	"github.com/jeevano/golemdb/pkg/client"
+	"github.com/jeevano/golemdb/pkg/fsm"
 	pb "github.com/jeevano/golemdb/proto/gen"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	"log"
+	"net"
+	"os"
+	"path/filepath"
+	"strconv"
+	"time"
 )
+
+// startup the raft FSM for a region
+func (s *Server) StartRaft(r *Region) error {
+	tcpAddr, err := net.ResolveTCPAddr("tcp", r.raftAddress)
+	if err != nil {
+		return fmt.Errorf("Failed to resolve TCP Addr: %v", err)
+	}
+
+	// Create the transport
+	r.raftTransport, err = raft.NewTCPTransport(
+		r.raftAddress,
+		tcpAddr,
+		s.conf.MaxPool,
+		10*time.Second,
+		os.Stdout,
+	)
+	if err != nil {
+		return fmt.Errorf("Failed to create Raft transport: %v", err)
+	}
+
+	// Create the snapshot store
+	snapshotStore, err := raft.NewFileSnapshotStore(s.conf.DataDir+"shard_"+strconv.Itoa(int(r.shardId))+"/", 1, os.Stdout)
+	if err != nil {
+		return fmt.Errorf("Failed to create Raft snapshot store: %v", err)
+	}
+
+	// Create the bolt store
+	r.raftStore, err = raftboltdb.NewBoltStore(filepath.Join(s.conf.DataDir+"shard_"+strconv.Itoa(int(r.shardId))+"/", "raft.db"))
+	if err != nil {
+		return fmt.Errorf("Failed to create Raft BoltDB store: %v", err)
+	}
+
+	// Create the log cache
+	logStore, err := raft.NewLogCache(256, r.raftStore)
+	if err != nil {
+		return fmt.Errorf("Failed to create Raft log store: %v", err)
+	}
+
+	// Set the config
+	conf := raft.DefaultConfig()
+	conf.LocalID = raft.ServerID(s.conf.ServerId)
+
+	// Create the FSM itself and start Raft
+	r.fsm = fsm.NewFSMDatabase(s.db)
+	r.raft, err = raft.NewRaft(conf, r.fsm, logStore, r.raftStore, snapshotStore, r.raftTransport)
+	if err != nil {
+		return fmt.Errorf("Failed to create new Raft: %v", err)
+	}
+
+	return nil
+}
 
 // Bootstrap a new raft cluster (become leader)
 func (s *Server) BootstrapCluster(r *Region) error {
@@ -83,6 +142,51 @@ func (s *Server) Leave(_ context.Context, req *pb.LeaveRequest) (*emptypb.Empty,
 // Return status to the requesting raft node
 func (s *Server) Status(_ context.Context, req *pb.StatusRequest) (*pb.StatusResponse, error) {
 	return &pb.StatusResponse{}, fmt.Errorf("Not yet implemented!")
+}
+
+// Becomes the leader of a new shard
+func (s *Server) BootstrapShardInternal(start, end string, shardId int32) error {
+	region := s.NewRegion(start, end, true, shardId)
+
+	if err := s.StartRaft(region); err != nil {
+		return fmt.Errorf("Failed to start up the Raft FSM: %v", err)
+	}
+
+	if err := s.BootstrapCluster(region); err != nil {
+		return fmt.Errorf("Failed to Bootstrap cluser: %v", err)
+	}
+
+	return nil
+}
+
+// Joins a specified shard at the leader
+func (s *Server) JoinShardInternal(leaderAddr, start, end string, shardId int32) error {
+	region := s.NewRegion(start, end, false, shardId)
+	if err := s.StartRaft(region); err != nil {
+		return fmt.Errorf("Failed to start up the Raft FSM: %v", err)
+	}
+
+	client, close, err := client.NewRaftClient(leaderAddr)
+	if err != nil {
+		return fmt.Errorf("Failed to create raft client: %v", err)
+	}
+
+	err = client.Join(s.conf.ServerId, region.raftAddress, shardId)
+
+	if err != nil {
+		close()
+		return fmt.Errorf("Failed to join Raft cluster: %v", err)
+	}
+
+	close()
+
+	return nil
+}
+
+// Splits everything after the split point into a new shard, and returns shardId
+// Returns error if not the leader or on failure
+func (s *Server) SplitShardInternal(splitPoint string, shardId int32) (int32, error) {
+	return -1, fmt.Errorf("Not yet implemented!")
 }
 
 func (s *Server) numVoters(r *Region) (int, error) {

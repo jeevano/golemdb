@@ -4,14 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
+
 	pb "github.com/jeevano/golemdb/proto/gen"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"time"
 )
 
 type PDClient struct {
-	client pb.PDClient
+	client       pb.PDClient
 	routingTable *RoutingTable
 }
 
@@ -29,7 +30,7 @@ func NewPDClient(pdAddr string) (*PDClient, func() error, error) {
 
 	client := pb.NewPDClient(conn)
 
-	return &PDClient{client: client}, conn.Close, nil
+	return &PDClient{client: client, routingTable: &RoutingTable{}}, conn.Close, nil
 }
 
 func (c *PDClient) DoHeartbeat(serverId string, address string, shards []*ShardInfo) error {

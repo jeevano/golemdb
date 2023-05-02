@@ -2,14 +2,15 @@
 package main
 
 import (
+	"log"
+	"net"
+	"path/filepath"
+
 	"github.com/jeevano/golemdb/pkg/config"
 	"github.com/jeevano/golemdb/pkg/db"
 	"github.com/jeevano/golemdb/pkg/srv"
 	pb "github.com/jeevano/golemdb/proto/gen"
 	"google.golang.org/grpc"
-	"log"
-	"net"
-	"path/filepath"
 )
 
 var conf = &config.Config{}
@@ -66,7 +67,7 @@ func main() {
 	}
 
 	// Start the server (begin heartbeating)
-	// s.Start()
+	s.Start()
 
 	// And begin serving incoming Raft requests and Kv requests
 	log.Printf("Kv Server listening on %s", conf.KvAddress)

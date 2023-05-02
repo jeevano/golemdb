@@ -5,7 +5,7 @@ import (
 	"github.com/hashicorp/raft"
 )
 
-type snapshot struct {}
+type snapshot struct{}
 
 func (s snapshot) Persist(_ raft.SnapshotSink) error {
 	return nil

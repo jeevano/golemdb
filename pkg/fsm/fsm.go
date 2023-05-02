@@ -4,10 +4,11 @@ package fsm
 
 import (
 	"encoding/json"
-	"github.com/hashicorp/raft"
-	"github.com/jeevano/golemdb/pkg/db"
 	"io"
 	"log"
+
+	"github.com/hashicorp/raft"
+	"github.com/jeevano/golemdb/pkg/db"
 )
 
 type FSMDatabase struct {

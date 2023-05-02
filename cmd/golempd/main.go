@@ -4,11 +4,12 @@ package main
 
 import (
 	"flag"
+	"log"
+	"net"
+
 	placementDriver "github.com/jeevano/golemdb/pkg/pd"
 	pb "github.com/jeevano/golemdb/proto/gen"
 	"google.golang.org/grpc"
-	"log"
-	"net"
 )
 
 var (
@@ -31,6 +32,8 @@ func main() {
 	var opts []grpc.ServerOption
 	grpcServer := grpc.NewServer(opts...)
 	pb.RegisterPDServer(grpcServer, s)
+
+	pd.Start()
 
 	grpcServer.Serve(lis)
 }

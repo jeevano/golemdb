@@ -25,8 +25,21 @@ message StatusResponse {
     bytes data = 1;
 }
 
+message JoinShardRequest {
+    string leader_address = 1;
+    int32 shard_id = 2;
+    string start = 3;
+    string end = 4;
+}
+
+message SplitShardRequest {
+    int32 shard_id = 2;
+}
+
 service Raft {
     rpc Join(JoinRequest) returns (google.protobuf.Empty) {}
     rpc Leave(LeaveRequest) returns (google.protobuf.Empty) {}
     rpc Status(StatusRequest) returns (StatusResponse) {}
+    rpc JoinShard(JoinShardRequest) returns (google.protobuf.Empty) {}
+    rpc SplitShard(SplitShardRequest) returns (google.protobuf.Empty) {}
 } 

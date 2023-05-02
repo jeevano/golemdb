@@ -2,10 +2,11 @@ package pd
 
 import (
 	"fmt"
-	"github.com/jeevano/golemdb/pkg/client"
+	"log"
 	"sync"
 	"time"
-	"log"
+
+	"github.com/jeevano/golemdb/pkg/client"
 )
 
 // Placement Driver
@@ -50,15 +51,26 @@ func NewPlacementDriver() *PD {
 	}
 }
 
+func (pd *PD) Start() {
+	go pd.reshardRoutine()
+}
+
+func (pd *PD) reshardRoutine() {
+	for {
+		time.Sleep(15 * time.Second)
+		pd.Reshard()
+	}
+}
+
 // Returns a copy of the current routing table
-func (pd *PD) getRoutingTable() (*RoutingTable, error) {
+func (pd *PD) getRoutingTable() (RoutingTable, error) {
 	pd.mu.Lock()
 	defer pd.mu.Unlock()
 
 	cpy := make([]Shard, len(pd.routingTable.Shards))
 	copy(cpy, pd.routingTable.Shards)
 
-	return &RoutingTable{Shards: cpy}, nil
+	return RoutingTable{Shards: cpy}, nil
 }
 
 // Takes in key as argument, returns leader node address
@@ -89,13 +101,13 @@ func (pd *PD) UpdateRoutingTable() error {
 	}
 
 	// Delete the current routing table
-	pd.routingTable = nil
+	pd.routingTable = &RoutingTable{}
 
 	// Copy relevant info the the routing table
 	for _, shard := range pd.shards {
 		shard_cpy := Shard{
-			Start: shard.Start,
-			End: shard.End,
+			Start:      shard.Start,
+			End:        shard.End,
 			LeaderAddr: shard.LeaderAddr,
 		}
 		pd.routingTable.Shards = append(pd.routingTable.Shards, shard_cpy)
@@ -114,11 +126,10 @@ func (pd *PD) Reshard() error {
 	// Map of shards to participating nodes
 	var shardToNodes = make(map[int32][]*Node)
 	var candidatesToJoin []*Node
-	var ind int = 0
 
 	// Check if nodes are dead
 	for key, n := range pd.nodes {
-		if n.lastHeatbeat < time.Now().Unix()-60000 {
+		if n.lastHeatbeat < time.Now().Unix()-60 {
 			delete(pd.nodes, key)
 		}
 		for key, _ := range n.shards {
@@ -129,33 +140,41 @@ func (pd *PD) Reshard() error {
 			candidatesToJoin = append(candidatesToJoin, n)
 		}
 	}
-	log.Printf("Node join candidates: %+v", candidatesToJoin)
 
 	// Check if Shards need new nodes
 	for shardId, nodes := range shardToNodes {
-		if len(nodes) < 2 {
-			log.Printf("Found shard with less than 2 participating nodes")
+		if len(nodes) < 3 {
+			log.Printf("Found shard with less than 3 participating nodes")
 
-			// If less than 2 participating nodes, join any candidate node to the shard
+			// If less than 3 participating nodes, join a candidate node to the shard
 			leaderAddr := pd.shards[shardId].LeaderAddr
+			var candidateAddr string = ""
+			for _, a := range candidatesToJoin {
+				if a.address != leaderAddr && a.shards[shardId] == nil {
+					candidateAddr = a.address
+					break
+				}
+			}
+			if candidateAddr == "" {
+				continue
+			}
 
-			client, close, err := client.NewRaftClient(leaderAddr)
+			// Dial the candidate node
+			client, close, err := client.NewRaftClient(candidateAddr)
 			if err != nil {
 				return fmt.Errorf("Failed to dial node %s: %v", leaderAddr, err)
 			}
 
-			log.Printf("Joining node %s to region lead by %s", candidatesToJoin[ind].address, leaderAddr)
+			log.Printf("Joining node %s to region lead by %s", candidateAddr, leaderAddr)
 
-			// How will this work? 
-			err = client.Join(candidatesToJoin[ind].serverId, candidatesToJoin[ind].address, shardId)
-			// The PD will have to tell the node to join, so it can start the raft before becoming a voter
+			// Tell the candidate to join the leader's shard
+			// Will cause lock contention: TODO: put this RPC outside of critical section
+			err = client.JoinShard(leaderAddr, pd.shards[shardId].Start, pd.shards[shardId].End, shardId)
 
 			if err != nil {
 				return fmt.Errorf("Failed to join node %s to cluster with leader %s: %v",
-					candidatesToJoin[ind].address, leaderAddr, err)
+					candidateAddr, leaderAddr, err)
 			}
-
-			ind = (ind + 1) % len(candidatesToJoin)
 
 			close()
 		}
@@ -181,6 +200,7 @@ func (pd *PD) HandleHeartbeat(serverId string, address string, shards []*ShardIn
 			address:      address,
 			lastHeatbeat: time.Now().Unix(),
 		}
+		node = pd.nodes[serverId]
 	} else {
 		pd.nodes[serverId].lastHeatbeat = time.Now().Unix()
 	}
@@ -203,6 +223,7 @@ func (pd *PD) HandleHeartbeat(serverId string, address string, shards []*ShardIn
 				Reads:      shard.Reads,
 				Writes:     shard.Writes,
 			}
+			oldShard = pd.shards[shard.ShardId]
 		}
 
 		// update the shard if leader

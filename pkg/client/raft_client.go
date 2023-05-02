@@ -3,10 +3,11 @@ package client
 import (
 	"context"
 	"fmt"
+	"time"
+
 	pb "github.com/jeevano/golemdb/proto/gen"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"time"
 )
 
 type RaftClient struct {
@@ -38,6 +39,22 @@ func (c *RaftClient) Join(serverId, address string, shardId int32) error {
 	defer cancel()
 
 	_, err := c.client.Join(ctx, &req)
+
+	return err
+}
+
+func (c *RaftClient) JoinShard(address, start, end string, shardId int32) error {
+	req := pb.JoinShardRequest{
+		LeaderAddress: address,
+		Start:         start,
+		End:           end,
+		ShardId:       shardId,
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	_, err := c.client.JoinShard(ctx, &req)
 
 	return err
 }

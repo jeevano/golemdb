@@ -9,6 +9,9 @@ mkdir data/n1/
 mkdir data/n2/
 mkdir data/n3/
 
+# Start the Placement driver
+./bin/golempd &
+
 # Spin up Raft cluster of 3 nodes on ports 8080, 8081, 8082 for testing.
 ./bin/golemdb -id=1 -kv-addr=localhost:8080 -raft-addr-list=localhost:4040,localhost:4041,localhost:4042 -data-dir="data/n1/" -bootstrap=true &
 # Sleep for 5s to allow leader some time to Bootstrap cluster before joining.

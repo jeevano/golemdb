@@ -5,18 +5,19 @@ package srv
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/raft"
-	raftboltdb "github.com/hashicorp/raft-boltdb"
-	"github.com/jeevano/golemdb/pkg/client"
-	"github.com/jeevano/golemdb/pkg/fsm"
-	pb "github.com/jeevano/golemdb/proto/gen"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	"log"
 	"net"
 	"os"
 	"path/filepath"
 	"strconv"
 	"time"
+
+	"github.com/hashicorp/raft"
+	raftboltdb "github.com/hashicorp/raft-boltdb"
+	"github.com/jeevano/golemdb/pkg/client"
+	"github.com/jeevano/golemdb/pkg/fsm"
+	pb "github.com/jeevano/golemdb/proto/gen"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // startup the raft FSM for a region
@@ -73,7 +74,7 @@ func (s *Server) StartRaft(r *Region) error {
 // Bootstrap a new raft cluster (become leader)
 func (s *Server) BootstrapCluster(r *Region) error {
 	// Ensure no other peers exist in Raft
-	peers, err := s.numVoters(r)
+	peers, err := r.numVoters()
 	if err != nil {
 		log.Fatalf("Failed to obtain Raft configuration to initiate Bootstrap: %v", err)
 		return fmt.Errorf("Failed to obtain config to Bootstrap cluster: %v", err)
@@ -144,6 +145,17 @@ func (s *Server) Status(_ context.Context, req *pb.StatusRequest) (*pb.StatusRes
 	return &pb.StatusResponse{}, fmt.Errorf("Not yet implemented!")
 }
 
+// Instruct node to join a shard at another node
+func (s *Server) JoinShard(_ context.Context, req *pb.JoinShardRequest) (*emptypb.Empty, error) {
+	return empty(), s.JoinShardInternal(req.LeaderAddress, req.Start, req.End, req.ShardId)
+}
+
+// Instruct node to split a shard in half (mid point is determined by the node)
+func (s *Server) SplitShard(_ context.Context, req *pb.SplitShardRequest) (*emptypb.Empty, error) {
+	_, err := s.SplitShardInternal(req.ShardId)
+	return empty(), err
+}
+
 // Becomes the leader of a new shard
 func (s *Server) BootstrapShardInternal(start, end string, shardId int32) error {
 	region := s.NewRegion(start, end, true, shardId)
@@ -185,11 +197,11 @@ func (s *Server) JoinShardInternal(leaderAddr, start, end string, shardId int32)
 
 // Splits everything after the split point into a new shard, and returns shardId
 // Returns error if not the leader or on failure
-func (s *Server) SplitShardInternal(splitPoint string, shardId int32) (int32, error) {
+func (s *Server) SplitShardInternal(shardId int32) (int32, error) {
 	return -1, fmt.Errorf("Not yet implemented!")
 }
 
-func (s *Server) numVoters(r *Region) (int, error) {
+func (r *Region) numVoters() (int, error) {
 	configFuture := r.raft.GetConfiguration()
 	if err := configFuture.Error(); err != nil {
 		return 0, fmt.Errorf("Failed to get Raft config: %v", err)
@@ -202,6 +214,10 @@ func (s *Server) numVoters(r *Region) (int, error) {
 		}
 	}
 	return n, nil
+}
+
+func (r *Region) shardLeader() (bool, error) {
+	return r.isLeader, nil
 }
 
 func empty() *emptypb.Empty {

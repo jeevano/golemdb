@@ -1,6 +1,10 @@
 package srv
 
 import (
+	"log"
+	"sync"
+	"time"
+
 	"github.com/hashicorp/raft"
 	raftboltdb "github.com/hashicorp/raft-boltdb"
 	"github.com/jeevano/golemdb/pkg/config"
@@ -8,9 +12,6 @@ import (
 	"github.com/jeevano/golemdb/pkg/fsm"
 	"github.com/jeevano/golemdb/pkg/pd"
 	pb "github.com/jeevano/golemdb/proto/gen"
-	"log"
-	"sync"
-	"time"
 )
 
 type Server struct {
@@ -94,9 +95,8 @@ func (s *Server) heartbeatRoutine() {
 	defer close()
 
 	for {
-		// Sleep for 20s in between heartbeats
-		time.Sleep(20 * time.Second)
-		log.Printf("Sending a heartbeat!")
+		// Sleep for 5s in between heartbeats
+		time.Sleep(5 * time.Second)
 
 		// Build the ShardInfo list to send over
 		info := make([]*pb.ShardInfo, len(s.regions))
@@ -112,7 +112,7 @@ func (s *Server) heartbeatRoutine() {
 
 		// Send heartbeat to PD
 		if err := client.DoHeartbeat(s.conf.ServerId, s.conf.KvAddress, info); err != nil {
-			log.Fatalf("Failed to send heartbeat to PD: %v", err)
+			log.Fatalf("Failed to complete PD heartbeat procedure: %v", err)
 		}
 	}
 }

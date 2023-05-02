@@ -57,7 +57,7 @@ func (pd *PD) Start() {
 
 func (pd *PD) reshardRoutine() {
 	for {
-		time.Sleep(60 * time.Second)
+		time.Sleep(15 * time.Second)
 		pd.Reshard()
 	}
 }
@@ -126,7 +126,6 @@ func (pd *PD) Reshard() error {
 	// Map of shards to participating nodes
 	var shardToNodes = make(map[int32][]*Node)
 	var candidatesToJoin []*Node
-	var ind int = 0
 
 	// Check if nodes are dead
 	for key, n := range pd.nodes {
@@ -141,23 +140,32 @@ func (pd *PD) Reshard() error {
 			candidatesToJoin = append(candidatesToJoin, n)
 		}
 	}
-	log.Printf("Node join candidates: %+v", candidatesToJoin)
 
 	// Check if Shards need new nodes
 	for shardId, nodes := range shardToNodes {
-		if len(nodes) < 2 {
-			log.Printf("Found shard with less than 2 participating nodes")
+		if len(nodes) < 3 {
+			log.Printf("Found shard with less than 3 participating nodes")
 
-			// If less than 2 participating nodes, join any candidate node to the shard
+			// If less than 3 participating nodes, join a candidate node to the shard
 			leaderAddr := pd.shards[shardId].LeaderAddr
+			var candidateAddr string = ""
+			for _, a := range candidatesToJoin {
+				if a.address != leaderAddr && a.shards[shardId] == nil {
+					candidateAddr = a.address
+					break
+				}
+			}
+			if candidateAddr == "" {
+				continue
+			}
 
 			// Dial the candidate node
-			client, close, err := client.NewRaftClient(candidatesToJoin[ind].address)
+			client, close, err := client.NewRaftClient(candidateAddr)
 			if err != nil {
 				return fmt.Errorf("Failed to dial node %s: %v", leaderAddr, err)
 			}
 
-			log.Printf("Joining node %s to region lead by %s", candidatesToJoin[ind].address, leaderAddr)
+			log.Printf("Joining node %s to region lead by %s", candidateAddr, leaderAddr)
 
 			// Tell the candidate to join the leader's shard
 			// Will cause lock contention: TODO: put this RPC outside of critical section
@@ -165,10 +173,8 @@ func (pd *PD) Reshard() error {
 
 			if err != nil {
 				return fmt.Errorf("Failed to join node %s to cluster with leader %s: %v",
-					candidatesToJoin[ind].address, leaderAddr, err)
+					candidateAddr, leaderAddr, err)
 			}
-
-			ind = (ind + 1) % len(candidatesToJoin)
 
 			close()
 		}

@@ -95,9 +95,8 @@ func (s *Server) heartbeatRoutine() {
 	defer close()
 
 	for {
-		// Sleep for 20s in between heartbeats
-		time.Sleep(20 * time.Second)
-		log.Printf("Sending a heartbeat!")
+		// Sleep for 5s in between heartbeats
+		time.Sleep(5 * time.Second)
 
 		// Build the ShardInfo list to send over
 		info := make([]*pb.ShardInfo, len(s.regions))

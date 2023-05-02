@@ -3,8 +3,9 @@ package pd
 import (
 	"context"
 	"encoding/json"
-	pb "github.com/jeevano/golemdb/proto/gen"
 	"log"
+
+	pb "github.com/jeevano/golemdb/proto/gen"
 )
 
 type PDServer struct {

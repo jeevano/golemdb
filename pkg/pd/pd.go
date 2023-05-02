@@ -2,10 +2,11 @@ package pd
 
 import (
 	"fmt"
-	"github.com/jeevano/golemdb/pkg/client"
 	"log"
 	"sync"
 	"time"
+
+	"github.com/jeevano/golemdb/pkg/client"
 )
 
 // Placement Driver

@@ -1,9 +1,11 @@
 // Implements simple Bolt-based Key Value pair database with Get and Put operations
 // TODO: add delete and prefix query support
+// TODO: isolate shard data using buckets, and persist node metadata in another bucket for fault tolerance
 package db
 
 import (
 	"fmt"
+	
 	bolt "go.etcd.io/bbolt"
 )
 

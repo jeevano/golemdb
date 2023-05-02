@@ -2,14 +2,15 @@
 package main
 
 import (
+	"log"
+	"net"
+	"path/filepath"
+
 	"github.com/jeevano/golemdb/pkg/config"
 	"github.com/jeevano/golemdb/pkg/db"
 	"github.com/jeevano/golemdb/pkg/srv"
 	pb "github.com/jeevano/golemdb/proto/gen"
 	"google.golang.org/grpc"
-	"log"
-	"net"
-	"path/filepath"
 )
 
 var conf = &config.Config{}

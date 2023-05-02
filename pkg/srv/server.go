@@ -1,6 +1,10 @@
 package srv
 
 import (
+	"log"
+	"sync"
+	"time"
+
 	"github.com/hashicorp/raft"
 	raftboltdb "github.com/hashicorp/raft-boltdb"
 	"github.com/jeevano/golemdb/pkg/config"
@@ -8,9 +12,6 @@ import (
 	"github.com/jeevano/golemdb/pkg/fsm"
 	"github.com/jeevano/golemdb/pkg/pd"
 	pb "github.com/jeevano/golemdb/proto/gen"
-	"log"
-	"sync"
-	"time"
 )
 
 type Server struct {

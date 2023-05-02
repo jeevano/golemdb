@@ -5,18 +5,19 @@ package srv
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/raft"
-	raftboltdb "github.com/hashicorp/raft-boltdb"
-	"github.com/jeevano/golemdb/pkg/client"
-	"github.com/jeevano/golemdb/pkg/fsm"
-	pb "github.com/jeevano/golemdb/proto/gen"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	"log"
 	"net"
 	"os"
 	"path/filepath"
 	"strconv"
 	"time"
+
+	"github.com/hashicorp/raft"
+	raftboltdb "github.com/hashicorp/raft-boltdb"
+	"github.com/jeevano/golemdb/pkg/client"
+	"github.com/jeevano/golemdb/pkg/fsm"
+	pb "github.com/jeevano/golemdb/proto/gen"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // startup the raft FSM for a region

@@ -6,11 +6,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/jeevano/golemdb/pkg/fsm"
-	pb "github.com/jeevano/golemdb/proto/gen"
 	"log"
 	"strings"
 	"time"
+
+	"github.com/jeevano/golemdb/pkg/fsm"
+	pb "github.com/jeevano/golemdb/proto/gen"
 )
 
 func (s *Server) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetResponse, error) {

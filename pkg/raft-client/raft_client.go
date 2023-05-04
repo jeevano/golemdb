@@ -1,4 +1,4 @@
-package client
+package raft
 
 import (
 	"context"

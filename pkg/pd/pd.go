@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jeevano/golemdb/internal/client"
+	raftClient "github.com/jeevano/golemdb/pkg/raft-client"
 )
 
 // Placement Driver
@@ -161,7 +161,7 @@ func (pd *PD) Reshard() error {
 			}
 
 			// Dial the candidate node
-			client, close, err := client.NewRaftClient(candidateAddr)
+			client, close, err := raftClient.NewRaftClient(candidateAddr)
 			if err != nil {
 				return fmt.Errorf("Failed to dial node %s: %v", leaderAddr, err)
 			}

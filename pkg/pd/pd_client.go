@@ -1,3 +1,5 @@
+// Client used to heartbeat to Placement Driver, used by GolemDB Nodes
+// Caches a routing table obtained from Placement driver. Can be used for redirects.
 package pd
 
 import (
@@ -13,7 +15,7 @@ import (
 
 type PDClient struct {
 	client       pb.PDClient
-	routingTable *RoutingTable
+	RoutingTable *RoutingTable
 }
 
 type ShardInfo = pb.ShardInfo
@@ -30,7 +32,7 @@ func NewPDClient(pdAddr string) (*PDClient, func() error, error) {
 
 	client := pb.NewPDClient(conn)
 
-	return &PDClient{client: client, routingTable: &RoutingTable{}}, conn.Close, nil
+	return &PDClient{client: client, RoutingTable: &RoutingTable{}}, conn.Close, nil
 }
 
 func (c *PDClient) DoHeartbeat(serverId string, address string, shards []*ShardInfo) error {
@@ -50,7 +52,7 @@ func (c *PDClient) DoHeartbeat(serverId string, address string, shards []*ShardI
 	}
 
 	// Deserialize the routing table
-	err = json.Unmarshal(resp.RoutingTable, c.routingTable)
+	err = json.Unmarshal(resp.RoutingTable, c.RoutingTable)
 	if err != nil {
 		return fmt.Errorf("Failed to unmarshal routing table: %v", err)
 	}

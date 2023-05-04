@@ -14,7 +14,7 @@ import (
 
 	"github.com/hashicorp/raft"
 	raftboltdb "github.com/hashicorp/raft-boltdb"
-	"github.com/jeevano/golemdb/pkg/client"
+	"github.com/jeevano/golemdb/internal/client"
 	"github.com/jeevano/golemdb/pkg/fsm"
 	pb "github.com/jeevano/golemdb/proto/gen"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
@@ -217,6 +217,7 @@ func (r *Region) numVoters() (int, error) {
 }
 
 func (r *Region) shardLeader() (bool, error) {
+	// todo: how can I actually tell if I am leader
 	return r.isLeader, nil
 }
 

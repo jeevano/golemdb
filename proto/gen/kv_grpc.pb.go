@@ -27,7 +27,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type KvClient interface {
-	Put(ctx context.Context, in *PutRequest, opts ...grpc.CallOption) (*Empty, error)
+	Put(ctx context.Context, in *PutRequest, opts ...grpc.CallOption) (*PutResponse, error)
 	Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*GetResponse, error)
 }
 
@@ -39,8 +39,8 @@ func NewKvClient(cc grpc.ClientConnInterface) KvClient {
 	return &kvClient{cc}
 }
 
-func (c *kvClient) Put(ctx context.Context, in *PutRequest, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
+func (c *kvClient) Put(ctx context.Context, in *PutRequest, opts ...grpc.CallOption) (*PutResponse, error) {
+	out := new(PutResponse)
 	err := c.cc.Invoke(ctx, Kv_Put_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -61,7 +61,7 @@ func (c *kvClient) Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOpt
 // All implementations must embed UnimplementedKvServer
 // for forward compatibility
 type KvServer interface {
-	Put(context.Context, *PutRequest) (*Empty, error)
+	Put(context.Context, *PutRequest) (*PutResponse, error)
 	Get(context.Context, *GetRequest) (*GetResponse, error)
 	mustEmbedUnimplementedKvServer()
 }
@@ -70,7 +70,7 @@ type KvServer interface {
 type UnimplementedKvServer struct {
 }
 
-func (UnimplementedKvServer) Put(context.Context, *PutRequest) (*Empty, error) {
+func (UnimplementedKvServer) Put(context.Context, *PutRequest) (*PutResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Put not implemented")
 }
 func (UnimplementedKvServer) Get(context.Context, *GetRequest) (*GetResponse, error) {

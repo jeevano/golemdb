@@ -14,7 +14,7 @@ import (
 
 	"github.com/hashicorp/raft"
 	raftboltdb "github.com/hashicorp/raft-boltdb"
-	"github.com/jeevano/golemdb/pkg/client"
+	raftClient "github.com/jeevano/golemdb/pkg/raft-client"
 	"github.com/jeevano/golemdb/pkg/fsm"
 	pb "github.com/jeevano/golemdb/proto/gen"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
@@ -178,7 +178,7 @@ func (s *Server) JoinShardInternal(leaderAddr, start, end string, shardId int32)
 		return fmt.Errorf("Failed to start up the Raft FSM: %v", err)
 	}
 
-	client, close, err := client.NewRaftClient(leaderAddr)
+	client, close, err := raftClient.NewRaftClient(leaderAddr)
 	if err != nil {
 		return fmt.Errorf("Failed to create raft client: %v", err)
 	}
@@ -217,6 +217,7 @@ func (r *Region) numVoters() (int, error) {
 }
 
 func (r *Region) shardLeader() (bool, error) {
+	// todo: how can I actually tell if I am leader
 	return r.isLeader, nil
 }
 

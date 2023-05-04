@@ -24,8 +24,7 @@ var (
 func main() {
 	flag.Parse()
 
-	client, close, _ := client.NewKvClient(*serverAddr)
-	defer close()
+	client := client.NewKvClient(*serverAddr)
 
 	if *op == "get" {
 		res, err := client.Get(*key)

@@ -10,7 +10,7 @@ As it turns out, managing multiple, dynamically-split Raft groups is trickier th
 - [X] Bolt DB
 - [X] Multi-Raft
 - [X] Range based sharding
-- [ ] Client redirection using routing table
+- [X] Client redirection using routing table
 - [ ] Shard data isolation
 - [ ] PD auto sharding
 

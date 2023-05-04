@@ -3,10 +3,11 @@ package pd
 import (
 	"fmt"
 	"log"
+	"strings"
 	"sync"
 	"time"
 
-	"github.com/jeevano/golemdb/pkg/client"
+	raftClient "github.com/jeevano/golemdb/pkg/raft-client"
 )
 
 // Placement Driver
@@ -77,12 +78,12 @@ func (pd *PD) getRoutingTable() (RoutingTable, error) {
 // Exported, can be used by nodes or client having a cached routing table
 func (rt *RoutingTable) Lookup(key string) (string, error) {
 	for _, shard := range rt.Shards {
-		if key >= shard.Start && key <= shard.End {
+		if strings.Compare(key, shard.Start) >= 0 && strings.Compare(key, shard.End) <= 0 {
 			return shard.LeaderAddr, nil
 		}
 	}
 
-	// This should not happen, unless something went wrong
+	// Happens if the key starts with an unsupported character or something went wrong
 	return "", fmt.Errorf("Could not find suitable shard")
 }
 
@@ -160,7 +161,7 @@ func (pd *PD) Reshard() error {
 			}
 
 			// Dial the candidate node
-			client, close, err := client.NewRaftClient(candidateAddr)
+			client, close, err := raftClient.NewRaftClient(candidateAddr)
 			if err != nil {
 				return fmt.Errorf("Failed to dial node %s: %v", leaderAddr, err)
 			}

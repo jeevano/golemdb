@@ -13,13 +13,16 @@ message GetRequest {
 
 message GetResponse {
     bytes val = 1;
+    bool success = 2;
+    bytes routing_table = 3;
 }
 
-message Empty {
-
+message PutResponse {
+    bool success = 1;
+    bytes routing_table = 2;
 }
 
 service Kv {
-    rpc Put(PutRequest) returns (Empty) {}
+    rpc Put(PutRequest) returns (PutResponse) {}
     rpc Get(GetRequest) returns (GetResponse) {}
 }
